@@ -1,0 +1,117 @@
+<!doctype html>
+<html>
+<head>
+  <style type="text/css">
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+    }
+    #canvas {
+      border: 0;
+      margin: 0;
+      padding: 0;
+    }
+  </style>
+	<script type="text/javascript">
+	  /* Logic From Hell
+	   * if (imageDataPoints[i] > 90) {
+            imageDataPoints[i] = 180 - toDegrees(Math.asin(Math.sin(toRadians(imageDataPoints[i]))));
+          } else {
+            imageDataPoints[i] = toDegrees(Math.asin(Math.sin(toRadians(imageDataPoints[i]))));
+          }
+	   */
+	  function toRadians(x) {
+	    return (x * Math.PI) / 180;
+	  }
+	  function toDegrees(x) {
+      return (x * 180) / Math.PI;
+    }
+	  function init() {
+	    var img, canvas, ctx, ratio,
+	        windowHeight, windowWidth,
+	        imgHeight, imgWidth,
+	        imageData, imageDataPoints, audioOutput;
+	    windowHeight = document.body.clientHeight;
+	    windowWidth = document.body.clientWidth;
+	    img = new Image();
+	    canvas = document.getElementById('canvas');
+	    ctx = canvas.getContext('2d');
+	    img.src = 'images/darth-vader.jpg';
+      img.onload = function() {
+        canvas.height = img.height;
+        canvas.width = img.width;
+        // Logic for Screen Sized Canvas
+        /*canvas.width = windowWidth - 4;
+        canvas.height = windowHeight - 4;
+        if (windowWidth > windowHeight) {
+          ratio = windowHeight / img.height;
+        } else {
+          ratio = windowWidth / img.width;
+        }
+        imgHeight = img.height * ratio;
+        imgWidth = img.width * ratio;
+        middleX = (canvas.width + imgWidth) / 2;
+        middleY = (canvas.height - imgHeight) / 2;
+        ctx.scale(ratio, ratio);*/
+        ctx.drawImage(img, 0, 0);
+      };
+      canvas.onclick = function() {
+        imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        imageDataPoints = imageData.data;
+        var imageDataPointsLength = imageDataPoints.length;
+        console.log(imageDataPointsLength);
+        for(var i = 0; i < imageDataPointsLength; i += 4) {
+          imageDataPoints[i] = Math.sin(toRadians(imageDataPoints[i]));
+          imageDataPoints[i + 1] = Math.sin(toRadians(imageDataPoints[i + 1]));
+          imageDataPoints[i + 2] = Math.sin(toRadians(imageDataPoints[i + 2]));
+        }
+        test = new Float32Array(imageDataPointsLength);
+        for(var i = 0; i < imageDataPointsLength; i++) {
+            if (imageDataPoints[i] >= 1) { test[i] = 0.999999;
+            } else {
+                if (imageDataPoints[i] <= 0) {
+                  test[i] = 0.000001;
+                } else {
+                  test[i] = imageDataPoints[i];
+                }
+            }
+
+        }
+        console.log(test.length/44100);
+
+        audioOutput = new Audio();
+        audioOutput.mozSetup(1, 44100);
+        audioOutput.mozWriteAudio(test);
+        for(var i = 0; i < imageDataPointsLength; i += 4) {
+          if (imageDataPoints[i] > Math.sin(toRadians(90))) {
+            imageDataPoints[i] = 180 - toDegrees(Math.asin(imageDataPoints[i]));
+          } else {
+            imageDataPoints[i] = toDegrees(Math.asin(imageDataPoints[i]));
+          }
+          if (imageDataPoints[i + 1] > Math.sin(toRadians(90))) {
+            imageDataPoints[i + 1] = 180 - toDegrees(Math.asin(imageDataPoints[i + 1]));
+          } else {
+            imageDataPoints[i + 1] = toDegrees(Math.asin(imageDataPoints[i + 1]));
+          }
+          if (imageDataPoints[i + 2] > Math.sin(toRadians(90))) {
+            imageDataPoints[i + 2] = 180 - toDegrees(Math.asin(imageDataPoints[i + 2]));
+          } else {
+            imageDataPoints[i + 2] = toDegrees(Math.asin(imageDataPoints[i + 2]));
+          }
+
+        }
+
+        // overwrite original image
+        ctx.putImageData(imageData, 0, 0);
+        
+      };
+	  }
+	</script>
+	
+</head>
+<body onload="init();">
+	<canvas id="canvas"></canvas>
+</body>
+</html>
