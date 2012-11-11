@@ -22,6 +22,11 @@
             imageDataPoints[i] = toDegrees(Math.asin(Math.sin(toRadians(imageDataPoints[i]))));
           }
 	   */
+	  var ctx, canvas;
+	       var img, ratio,
+          windowHeight, windowWidth,
+          imgHeight, imgWidth,
+          imageData, imageDataPoints, audioOutput;
 	  function toRadians(x) {
 	    return (x * Math.PI) / 180;
 	  }
@@ -29,10 +34,7 @@
       return (x * 180) / Math.PI;
     }
 	  function init() {
-	    var img, canvas, ctx, ratio,
-	        windowHeight, windowWidth,
-	        imgHeight, imgWidth,
-	        imageData, imageDataPoints, audioOutput;
+
 	    windowHeight = document.body.clientHeight;
 	    windowWidth = document.body.clientWidth;
 	    img = new Image();
@@ -104,6 +106,7 @@
         }
 
         // overwrite original image
+        
         ctx.putImageData(imageData, 0, 0);
         
       };
@@ -113,5 +116,43 @@
 </head>
 <body onload="init();">
 	<canvas id="canvas"></canvas>
+    <audio id="audio-element" src="sounds/don-t-bother-me.ogg" controls="true" style="width: 512px;">
+    </audio>
+  <canvas id="audioCanvas"></canvas>
+    <pre id="raw">hello</pre>
+    <script>
+    
+        var audioImageData = [];
+        function loadedMetadata() {
+            channels          = audio.mozChannels;
+            rate              = audio.mozSampleRate;
+            frameBufferLength = audio.mozFrameBufferLength;
+        }
+
+        function audioAvailable(event) {
+            var frameBuffer = event.frameBuffer;
+            var t = event.time;
+            console.log(frameBuffer.length);
+            for(var i=0; i < frameBuffer.length; i++) {
+              audioImageData.push(Math.abs(toDegrees(Math.asin(frameBuffer[i]))));
+            }
+            var text = "Samples at: " + t + "\n"
+            text += frameBuffer[0] + "  " + frameBuffer[1]
+            raw.innerHTML = text;
+        }
+
+        var raw = document.getElementById('raw')
+        var audio = document.getElementById('audio-element');
+        audio.addEventListener('MozAudioAvailable', audioAvailable, false);
+        audio.addEventListener('loadedmetadata', loadedMetadata, false);
+        function fuckItShipIt() {
+          imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          for(var i=0; i < 44100; i++) {
+             imageDataPoints[i] = audioImageData[i];
+          }
+          ctx.clearRect(0, 0, 300, 300);
+          ctx.putImageData(imageData, 0, 0);
+        }
+    </script>
 </body>
 </html>
